@@ -1,19 +1,22 @@
 import hashlib
 
 
-class MerkelTreeA:
+class MerkelTreeNode:
     def __init__(self, data):
-        self.leftNode = None
-        self.rightNode = None
+        self.leftLeaf = None
+        self.rightLeaf = None
         self.data = data
-        self.hashedData = hashlib.sha256(data)
+        self.hashedData = hashlib.sha256(data.encode('utf-8'))
 
 
 def addNode(data):
+    dataArray.append(data)
+    MerkelTreeNode(data)
     return
 
 
 if __name__ == '__main__':
+    dataArray=[]
     while True:
         usrInput = input()
         usrInputParsed = usrInput.split(" ")
