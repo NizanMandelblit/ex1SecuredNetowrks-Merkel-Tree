@@ -14,7 +14,6 @@ def addNode(data):
     MerkelTreeNode(data)
     return
 
-
 if __name__ == '__main__':
     dataArray=[]
     while True:
