@@ -19,17 +19,16 @@ def calcRoot(nodesArrayLocal):
     if nodesArrayLen == 0:
         return 0
     elif nodesArrayLen == 1:
-        return hashlib.sha256((nodesArrayLocal[0].hashedData).encode('utf-8')).hexdigest()
+        return nodesArrayLocal[0].hashedData
     else:
         while len(nodesArrayLocal) > 1:
             finaTree = []
             for i in range(0, len(nodesArrayLocal), 2):
                 node = nodesArrayLocal[i]
+                if i + 1 >= len(nodesArrayLocal):
+                    finaTree.append(nodesArrayLocal[i])
+                    break
                 node2 = nodesArrayLocal[i + 1]
-                if node2 is None:
-                    finaTree.append(MerkelTreeNode(nodesArrayLocal[i]))
-                    finaTree[0].leftLeaf = node
-                    return
                 combinedHash = node.hashedData + node2.hashedData
                 parent = MerkelTreeNode(combinedHash)
                 parent.leftLeaf = node
