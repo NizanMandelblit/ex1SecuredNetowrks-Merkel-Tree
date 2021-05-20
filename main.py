@@ -18,12 +18,25 @@ def calcRoot():
     if len(nodesArray) == 0:
         return 0
     elif len(nodesArray) == 1:
-        return nodesArray[0].hashedData
-    return
+        return hashlib.sha256((nodesArray[0].hashedData).encode('utf-8')).hexdigest()
+    else:
+        for i in range(0, len(nodesArray), 2):
+            node=nodesArray[i]
+            node2=nodesArray[i+1]
+            if node2 is None:
+                finaTree.append(nodesArray[i])
+                return
+            combinedHash = node.hashedData + node2.hashedData
+            parent = MerkelTreeNode(combinedHash)
+            parent.leftLeaf = node
+            parent.rightLeaf = node2
+            finaTree.append(parent)
+
 
 
 if __name__ == '__main__':
     nodesArray = []
+    finaTree = []
     while True:
         usrInput = input()
         usrInputParsed = usrInput.split(" ")
