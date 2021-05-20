@@ -6,22 +6,37 @@ class MerkelTreeNode:
         self.leftLeaf = None
         self.rightLeaf = None
         self.data = data
-        self.hashedData = hashlib.sha256(data.encode('utf-8'))
+        self.hashedData = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
 
 def addNode(data):
-    dataArray.append(data)
-    MerkelTreeNode(data)
+    nodesArray.append(MerkelTreeNode(data))
+    return
+
+
+def calcRoot():
+    if len(nodesArray) == 0:
+        return 0
+    elif len(nodesArray) == 1:
+        return nodesArray[0].hashedData
     return
 
 
 if __name__ == '__main__':
-    dataArray=[]
+    nodesArray = []
     while True:
         usrInput = input()
         usrInputParsed = usrInput.split(" ")
         if usrInputParsed[0] == "1":
             addNode(usrInputParsed[1])
+        elif usrInputParsed[0] == "2":
+            result = calcRoot()
+            if result:
+                print(result)
+            else:  # invalid input
+                print("\n")
+                continue
+        else:
             print("invalid input!")
             continue
         x = 2
