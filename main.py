@@ -14,24 +14,30 @@ def addNode(data):
     return
 
 
-def calcRoot():
-    if len(nodesArray) == 0:
+def calcRoot(nodesArrayLocal):
+    nodesArrayLen = len(nodesArrayLocal)
+    if nodesArrayLen == 0:
         return 0
-    elif len(nodesArray) == 1:
-        return hashlib.sha256((nodesArray[0].hashedData).encode('utf-8')).hexdigest()
+    elif nodesArrayLen == 1:
+        return hashlib.sha256((nodesArrayLocal[0].hashedData).encode('utf-8')).hexdigest()
     else:
-        for i in range(0, len(nodesArray), 2):
-            node=nodesArray[i]
-            node2=nodesArray[i+1]
-            if node2 is None:
-                finaTree.append(nodesArray[i])
-                return
-            combinedHash = node.hashedData + node2.hashedData
-            parent = MerkelTreeNode(combinedHash)
-            parent.leftLeaf = node
-            parent.rightLeaf = node2
-            finaTree.append(parent)
-
+        while len(nodesArrayLocal) > 1:
+            finaTree = []
+            for i in range(0, len(nodesArrayLocal), 2):
+                node = nodesArrayLocal[i]
+                node2 = nodesArrayLocal[i + 1]
+                if node2 is None:
+                    finaTree.append(MerkelTreeNode(nodesArrayLocal[i]))
+                    finaTree[0].leftLeaf = node
+                    return
+                combinedHash = node.hashedData + node2.hashedData
+                parent = MerkelTreeNode(combinedHash)
+                parent.leftLeaf = node
+                parent.rightLeaf = node2
+                finaTree.append(parent)
+            nodesArrayLocal = []
+            nodesArrayLocal = finaTree
+        return finaTree[0].hashedData
 
 
 if __name__ == '__main__':
@@ -43,7 +49,7 @@ if __name__ == '__main__':
         if usrInputParsed[0] == "1":
             addNode(usrInputParsed[1])
         elif usrInputParsed[0] == "2":
-            result = calcRoot()
+            result = calcRoot(nodesArray)
             if result:
                 print(result)
             else:  # invalid input
