@@ -3,6 +3,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
+
 
 class MerkelTreeNode:
     def __init__(self, data):
@@ -33,8 +35,31 @@ def calcKeys():
         key_size=2048,
         backend=default_backend()
     )
+    alg=serialization.NoEncryption()
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=alg
+    )
+    with open("sk.pem", "wb") as f:
+        f.write(pem)
+        f.close()
+    f = open("sk.pem", "rb")
+    print(f.read())
+    f.close()
     public_key = private_key.public_key()
-    return private_key,public_key
+    pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    with open("pk.pem", "wb") as f:
+        f.write(pem)
+        f.close()
+    f = open("pk.pem", "rb")
+    print(f.read())
+    f.close()
+
+
 
 def signRoot(root,key):
     message = root
@@ -48,7 +73,7 @@ def signRoot(root,key):
     )
     return signature
 
-def verifyRoot(root):
+def verifyRoot(message):
     public_key.verify(
         signature,
         message,
@@ -105,7 +130,7 @@ if __name__ == '__main__':
         elif usrInputParsed[0] == "4":
             checkProofOfInclusion(finaTree)
         elif usrInputParsed[0] == "5":
-            private_key, public_key = calcKeys()
+            calcKeys()
         elif usrInputParsed[0] == "6":
             signature = signRoot(finaTree,usrInputParsed[1])
         elif usrInputParsed[0] == "7":
