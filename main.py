@@ -45,7 +45,9 @@ def calcKeys():
         f.write(pem)
         f.close()
     f = open("sk.pem", "rb")
-    print(f.read())
+    bSK=f.read()
+    sSK=bSK.decode()
+    print(sSK)
     f.close()
     public_key = private_key.public_key()
     pem = public_key.public_bytes(
@@ -56,22 +58,36 @@ def calcKeys():
         f.write(pem)
         f.close()
     f = open("pk.pem", "rb")
-    print(f.read())
+    bPK = f.read()
+    sPK = bPK.decode()
+    print(sPK)
     f.close()
 
 
 
-def signRoot(root,key):
-    message = root
-    signature = key.sign(
-        message,
-        padding.PSS(
+def signRoot(root):
+    with open("sk.pem", "rb") as key_file:
+        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
+        message = bytes(root, 'utf-8')
+        signature = private_key.sign(
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        print(signature)
+        print(signature.decode())
+
+        public_key = private_key.public_key()
+        return public_key.verify(
+            signature, message, padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
             salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
-    return signature
+            ),
+            hashes.SHA256()
+        )
 
 def verifyRoot(message):
     public_key.verify(
@@ -88,7 +104,7 @@ def verifyRoot(message):
 def calcRoot(nodesArrayLocal):
     nodesArrayLen = len(nodesArrayLocal)
     if nodesArrayLen == 0:
-        return 0
+        return None
     elif nodesArrayLen == 1:
         return nodesArrayLocal[0].hashedData
     else:
@@ -107,36 +123,41 @@ def calcRoot(nodesArrayLocal):
                 finalTree.append(parent)
             nodesArrayLocal = []
             nodesArrayLocal = finalTree
-        return finalTree[0].hashedData
+        return finalTree
 
 
 if __name__ == '__main__':
     nodesArray = []
-    finaTree = []
+    finalTree = []
     while True:
         usrInput = input()
         usrInputParsed = usrInput.split(" ")
         if usrInputParsed[0] == "1":
             addNode(usrInputParsed[1])
         elif usrInputParsed[0] == "2":
-            result = calcRoot(nodesArray)
-            if result:
-                print(result)
+            finalTree = calcRoot(nodesArray)
+            if finalTree is not None:
+                print(finalTree[0].hashedData)
             else:  # invalid input
                 print("\n")
                 continue
         elif usrInputParsed[0] == "3":
-            proof = calcProofOfInclusion(usrInputParsed[1], finaTree)
+            proof = calcProofOfInclusion(usrInputParsed[1], finalTree)
         elif usrInputParsed[0] == "4":
-            checkProofOfInclusion(finaTree)
+            checkProofOfInclusion(finalTree)
         elif usrInputParsed[0] == "5":
             calcKeys()
         elif usrInputParsed[0] == "6":
-            signature = signRoot(finaTree,usrInputParsed[1])
+            fds=bytes(usrInputParsed[1], 'utf-8')
+            rsa.PrivateKey.load_pkcs1(fds)
+            rit = "root"
+            hashRoot=hashlib.sha256(rit.encode('utf-8')).hexdigest()
+            sign = signRoot(hashRoot)
+            print(sign)
         elif usrInputParsed[0] == "7":
-            signature = verifyRoot(finaTree, usrInputParsed[1])
+            signa = verifyRoot(finalTree, usrInputParsed[1])
 
         else:
             print("invalid input!")
             continue
-        x = 2
+
