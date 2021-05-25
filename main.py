@@ -4,6 +4,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
+import base64
 
 
 class MerkelTreeNode:
@@ -77,9 +78,12 @@ def signRoot(root):
             ),
             hashes.SHA256()
         )
-        print(signature)
-        print(signature.decode())
-
+        encoded_signature=base64.b64encode(signature)
+        decoded_signature=encoded_signature.decode()
+        print(decoded_signature)
+    """
+        encoded_signature=decoded_signature.encode(encoding='utf-8')
+        signature=base64.b64decode(encoded_signature)
         public_key = private_key.public_key()
         return public_key.verify(
             signature, message, padding.PSS(
@@ -88,17 +92,27 @@ def signRoot(root):
             ),
             hashes.SHA256()
         )
+    """
+    return decoded_signature
 
-def verifyRoot(message):
-    public_key.verify(
-        signature,
-        message,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
+def verifyRoot(message,decoded_signature):
+    with open("sk.pem", "rb") as key_file:
+        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
+        encoded_signature = decoded_signature.encode(encoding='utf-8')
+        signature = base64.b64decode(encoded_signature)
+        message = bytes(message, 'utf-8')
+        public_key = private_key.public_key()
+        try:
+            public_key.verify(
+                signature, message, padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+        except:
+            return False
+        return True
 
 
 def calcRoot(nodesArrayLocal):
@@ -127,6 +141,9 @@ def calcRoot(nodesArrayLocal):
 
 
 if __name__ == '__main__':
+    rit = "root"
+    hashRoot = hashlib.sha256(rit.encode('utf-8')).hexdigest()
+    sign = signRoot(hashRoot)
     nodesArray = []
     finalTree = []
     while True:
@@ -148,14 +165,12 @@ if __name__ == '__main__':
         elif usrInputParsed[0] == "5":
             calcKeys()
         elif usrInputParsed[0] == "6":
-            fds=bytes(usrInputParsed[1], 'utf-8')
-            rsa.PrivateKey.load_pkcs1(fds)
             rit = "root"
             hashRoot=hashlib.sha256(rit.encode('utf-8')).hexdigest()
             sign = signRoot(hashRoot)
             print(sign)
         elif usrInputParsed[0] == "7":
-            signa = verifyRoot(finalTree, usrInputParsed[1])
+            print(verifyRoot(hashRoot, sign))
 
         else:
             print("invalid input!")
