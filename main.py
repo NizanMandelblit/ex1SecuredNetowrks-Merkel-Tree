@@ -80,20 +80,7 @@ def signRoot(root):
         )
         encoded_signature=base64.b64encode(signature)
         decoded_signature=encoded_signature.decode()
-        print(decoded_signature)
-    """
-        encoded_signature=decoded_signature.encode(encoding='utf-8')
-        signature=base64.b64decode(encoded_signature)
-        public_key = private_key.public_key()
-        return public_key.verify(
-            signature, message, padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
-    """
-    return decoded_signature
+        return decoded_signature
 
 def verifyRoot(message,decoded_signature):
     with open("sk.pem", "rb") as key_file:
@@ -141,9 +128,8 @@ def calcRoot(nodesArrayLocal):
 
 
 if __name__ == '__main__':
-    rit = "root"
-    hashRoot = hashlib.sha256(rit.encode('utf-8')).hexdigest()
-    sign = signRoot(hashRoot)
+    sign = 0
+    hashRoot=1
     nodesArray = []
     finalTree = []
     while True:
