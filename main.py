@@ -19,7 +19,8 @@ def addNode(data):
     nodesArray.append(MerkelTreeNode(data))
     return
 # calculates the Proof Of Inclusion
-def calcProofOfInclusion(index,tree):
+def calcProofOfInclusion(index):
+
     proof = []
 
     return proof
@@ -120,7 +121,7 @@ def calcRoot(nodesArrayLocal):
     if nodesArrayLen == 0:
         return None
     elif nodesArrayLen == 1:
-        return nodesArrayLocal[0].hashedData
+        return nodesArrayLocal
     else:
         while len(nodesArrayLocal) > 1:
             finalTree = []
@@ -159,7 +160,7 @@ if __name__ == '__main__':
                 print("\n")
                 continue
         elif usrInputParsed[0] == "3":
-            proof = calcProofOfInclusion(usrInputParsed[1], finalTree)
+            proof = calcProofOfInclusion(usrInputParsed[1])
         elif usrInputParsed[0] == "4":
             checkProofOfInclusion(finalTree)
         elif usrInputParsed[0] == "5":
