@@ -129,8 +129,6 @@ def calcRoot(nodesArrayLocal):
 
 
 if __name__ == '__main__':
-    sign = 0
-    hashRoot=1
     nodesArray = []
     finalTree = []
     while True:
@@ -152,12 +150,12 @@ if __name__ == '__main__':
         elif usrInputParsed[0] == "5":
             calcKeys()
         elif usrInputParsed[0] == "6":
-            rit = "root"
-            hashRoot=hashlib.sha256(rit.encode('utf-8')).hexdigest()
+            hashRoot=finalTree[0].hashedData
             sign = signRoot(hashRoot)
             print(sign)
         elif usrInputParsed[0] == "7":
-            print(verifyRoot(hashRoot, sign))
+            hashRoot = finalTree[0].hashedData
+            print(verifyRoot(hashRoot, usrInputParsed[1]))
 
         else:
             print("invalid input!")
