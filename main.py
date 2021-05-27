@@ -12,15 +12,19 @@ class MerkelTreeNode:
         self.leftLeaf = None
         self.rightLeaf = None
         self.data = data
+        self.numLeaf = None
         self.hashedData = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
 
 def addNode(data):
-    nodesArray.append(MerkelTreeNode(data))
+    newNode = MerkelTreeNode(data)
+    newNode.numLeaf = len(nodesArray)
+    nodesArray.append(newNode)
     return
+
+
 # calculates the Proof Of Inclusion
 def calcProofOfInclusion(index):
-
     proof = []
 
     return proof
@@ -31,13 +35,15 @@ def checkProofOfInclusion(data):
     proof = []
 
     return proof
+
+
 def calcKeys():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
         backend=default_backend()
     )
-    alg=serialization.NoEncryption()
+    alg = serialization.NoEncryption()
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -47,8 +53,8 @@ def calcKeys():
         f.write(pem)
         f.close()
     f = open("sk.pem", "rb")
-    bSK=f.read()
-    sSK=bSK.decode()
+    bSK = f.read()
+    sSK = bSK.decode()
     print(sSK)
     f.close()
     public_key = private_key.public_key()
@@ -66,7 +72,6 @@ def calcKeys():
     f.close()
 
 
-
 def signRoot(root):
     with open("sk.pem", "rb") as key_file:
         private_key = serialization.load_pem_private_key(key_file.read(), password=None)
@@ -79,11 +84,12 @@ def signRoot(root):
             ),
             hashes.SHA256()
         )
-        encoded_signature=base64.b64encode(signature)
-        decoded_signature=encoded_signature.decode()
+        encoded_signature = base64.b64encode(signature)
+        decoded_signature = encoded_signature.decode()
         return decoded_signature
 
-def verifyRoot(message,decoded_signature):
+
+def verifyRoot(message, decoded_signature):
     with open("sk.pem", "rb") as key_file:
         private_key = serialization.load_pem_private_key(key_file.read(), password=None)
         encoded_signature = decoded_signature.encode(encoding='utf-8')
@@ -150,7 +156,7 @@ if __name__ == '__main__':
         elif usrInputParsed[0] == "5":
             calcKeys()
         elif usrInputParsed[0] == "6":
-            hashRoot=finalTree[0].hashedData
+            hashRoot = finalTree[0].hashedData
             sign = signRoot(hashRoot)
             print(sign)
         elif usrInputParsed[0] == "7":
@@ -160,4 +166,3 @@ if __name__ == '__main__':
         else:
             print("invalid input!")
             continue
-
