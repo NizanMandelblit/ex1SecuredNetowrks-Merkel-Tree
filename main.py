@@ -139,30 +139,29 @@ if __name__ == '__main__':
     finalTree = []
     while True:
         usrInput = input()
-        usrInputParsed = usrInput.split(" ")
-        if usrInputParsed[0] == "1":
-            addNode(usrInputParsed[1])
-        elif usrInputParsed[0] == "2":
+        # usrInputParsed = usrInput.split(" ")
+        if usrInput[0] == "1":
+            addNode(usrInput[2:])
+        elif usrInput[0] == "2":
             finalTree = calcRoot(nodesArray)
             if finalTree is not None:
                 print(finalTree[0].hashedData)
             else:  # invalid input
                 print("\n")
                 continue
-        elif usrInputParsed[0] == "3":
-            proof = calcProofOfInclusion(usrInputParsed[1])
-        elif usrInputParsed[0] == "4":
+        elif usrInput[0] == "3":
+            proof = calcProofOfInclusion(usrInput[2:])
+        elif usrInput[0] == "4":
             checkProofOfInclusion(finalTree)
-        elif usrInputParsed[0] == "5":
+        elif usrInput[0] == "5":
             calcKeys()
-        elif usrInputParsed[0] == "6":
+        elif usrInput[0] == "6":
             hashRoot = finalTree[0].hashedData
             sign = signRoot(hashRoot)
             print(sign)
-        elif usrInputParsed[0] == "7":
+        elif usrInput[0] == "7":
             hashRoot = finalTree[0].hashedData
-            print(verifyRoot(hashRoot, usrInputParsed[1]))
-
+            print(verifyRoot(hashRoot, usrInput[1]))
         else:
             print("invalid input!")
             continue
