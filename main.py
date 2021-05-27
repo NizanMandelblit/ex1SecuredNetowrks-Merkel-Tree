@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 import base64
 
-
 class MerkelTreeNode:
     def __init__(self, data):
         self.leftLeaf = None
@@ -50,6 +49,7 @@ def calcKeys():
     bSK=f.read()
     sSK=bSK.decode()
     print(sSK)
+    print(bSK)
     f.close()
     public_key = private_key.public_key()
     pem = public_key.public_bytes(
@@ -67,21 +67,20 @@ def calcKeys():
 
 
 
-def signRoot(root):
-    with open("sk.pem", "rb") as key_file:
-        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
-        message = bytes(root, 'utf-8')
-        signature = private_key.sign(
-            message,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
-        encoded_signature=base64.b64encode(signature)
-        decoded_signature=encoded_signature.decode()
-        return decoded_signature
+def signRoot(root,key):
+    private_key = serialization.load_pem_private_key(to_binary(key), password=None, backend=default_backend())
+    message = bytes(root, 'utf-8')
+    signature = private_key.sign(
+        message,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    encoded_signature=base64.b64encode(signature)
+    decoded_signature=encoded_signature.decode()
+    return decoded_signature
 
 def verifyRoot(message,decoded_signature):
     with open("sk.pem", "rb") as key_file:
@@ -150,8 +149,10 @@ if __name__ == '__main__':
         elif usrInputParsed[0] == "5":
             calcKeys()
         elif usrInputParsed[0] == "6":
-            hashRoot=finalTree[0].hashedData
-            sign = signRoot(hashRoot)
+            hashRoot = finalTree[0].hashedData
+            key_str = input()
+            key_bytes = bytes(key_str, 'utf-8')
+            sign = signRoot(hashRoot, key_bytes)
             print(sign)
         elif usrInputParsed[0] == "7":
             hashRoot = finalTree[0].hashedData
