@@ -25,22 +25,19 @@ def addNode(data):
     return
 
 
-def strProofRecrusive(requestedNode, flag):
+def strProofRecrusive(requestedNode):
     if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
         return
     if requestedNode.brother is not None:
-        if flag:
-            print(" " + requestedNode.brother.hashedData, end='')
-        else:
-            print(requestedNode.brother.hashedData, end='')
+        print(" " + requestedNode.brother.hashedData, end='')
     if requestedNode.parent.hashedData != finalTree[0].hashedData:  # if his parent is not the root
-        strProofRecrusive(requestedNode.parent, 1)
+        strProofRecrusive(requestedNode.parent)
 
 
 # calculates the Proof Of Inclusion
 def calcProofOfInclusion(index):
     requestedNode = nodesArray[int(index)]
-    strProofRecrusive(requestedNode, 0)
+    strProofRecrusive(requestedNode)
 
 
 def checkProofOfInclusion(data):
@@ -174,7 +171,8 @@ if __name__ == '__main__':
             else:  # invalid input
                 print("\n")
                 continue
-            proof = calcProofOfInclusion(usrInput[2:])
+            calcProofOfInclusion(usrInput[2:])
+            print("\n")
         elif usrInput[0] == "4":
             checkProofOfInclusion(finalTree)
         elif usrInput[0] == "5":
