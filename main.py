@@ -13,6 +13,8 @@ class MerkelTreeNode:
         self.rightLeaf = None
         self.data = data
         self.numLeaf = None
+        self.parent = None
+        self.brother = None
         self.hashedData = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
 
@@ -23,17 +25,27 @@ def addNode(data):
     return
 
 
+def strProofRecrusive(requestedNode, flag):
+    if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
+        return
+    if requestedNode.brother is not None:
+        if flag:
+            print(" " + requestedNode.brother.hashedData, end='')
+        else:
+            print(requestedNode.brother.hashedData, end='')
+    if requestedNode.parent.hashedData != finalTree[0].hashedData:  # if his parent is not the root
+        strProofRecrusive(requestedNode.parent, 1)
+
+
 # calculates the Proof Of Inclusion
 def calcProofOfInclusion(index):
-    proof = []
-
-    return proof
+    requestedNode = nodesArray[int(index)]
+    strProofRecrusive(requestedNode, 0)
 
 
 def checkProofOfInclusion(data):
     nodesArray.append(MerkelTreeNode(data))
     proof = []
-
     return proof
 
 
@@ -128,6 +140,10 @@ def calcRoot(nodesArrayLocal):
                 parent = MerkelTreeNode(combinedHash)
                 parent.leftLeaf = node
                 parent.rightLeaf = node2
+                node.parent = parent
+                node.brother = node2
+                node2.parent = parent
+                node2.brother = node
                 finalTree.append(parent)
             nodesArrayLocal = []
             nodesArrayLocal = finalTree
@@ -139,17 +155,25 @@ if __name__ == '__main__':
     finalTree = []
     while True:
         usrInput = input()
+        if usrInput == "":
+            continue
         # usrInputParsed = usrInput.split(" ")
         if usrInput[0] == "1":
             addNode(usrInput[2:])
         elif usrInput[0] == "2":
-            finalTree = calcRoot(nodesArray)
+            finalTree = calcRoot(nodesArray.copy())
             if finalTree is not None:
                 print(finalTree[0].hashedData)
             else:  # invalid input
                 print("\n")
                 continue
         elif usrInput[0] == "3":
+            finalTree = calcRoot(nodesArray)
+            if finalTree is not None:
+                print(finalTree[0].hashedData, end='')
+            else:  # invalid input
+                print("\n")
+                continue
             proof = calcProofOfInclusion(usrInput[2:])
         elif usrInput[0] == "4":
             checkProofOfInclusion(finalTree)
