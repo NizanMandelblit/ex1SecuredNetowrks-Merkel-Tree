@@ -6,37 +6,53 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 import base64
 
+
 class MerkelTreeNode:
     def __init__(self, data):
         self.leftLeaf = None
         self.rightLeaf = None
         self.data = data
+        self.numLeaf = None
+        self.parent = None
+        self.brother = None
         self.hashedData = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
 
 def addNode(data):
-    nodesArray.append(MerkelTreeNode(data))
+    newNode = MerkelTreeNode(data)
+    newNode.numLeaf = len(nodesArray)
+    nodesArray.append(newNode)
     return
+
+
+def strProofRecrusive(requestedNode):
+    if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
+        return
+    if requestedNode.brother is not None:
+        print(" " + requestedNode.brother.hashedData, end='')
+    if requestedNode.parent.hashedData != finalTree[0].hashedData:  # if his parent is not the root
+        strProofRecrusive(requestedNode.parent)
+
+
 # calculates the Proof Of Inclusion
 def calcProofOfInclusion(index):
-
-    proof = []
-
-    return proof
+    requestedNode = nodesArray[int(index)]
+    strProofRecrusive(requestedNode)
 
 
 def checkProofOfInclusion(data):
     nodesArray.append(MerkelTreeNode(data))
     proof = []
-
     return proof
+
+
 def calcKeys():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
         backend=default_backend()
     )
-    alg=serialization.NoEncryption()
+    alg = serialization.NoEncryption()
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -46,10 +62,9 @@ def calcKeys():
         f.write(pem)
         f.close()
     f = open("sk.pem", "rb")
-    bSK=f.read()
-    sSK=bSK.decode()
+    bSK = f.read()
+    sSK = bSK.decode()
     print(sSK)
-    print(bSK)
     f.close()
     public_key = private_key.public_key()
     pem = public_key.public_bytes(
@@ -66,23 +81,24 @@ def calcKeys():
     f.close()
 
 
+def signRoot(root):
+    with open("sk.pem", "rb") as key_file:
+        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
+        message = bytes(root, 'utf-8')
+        signature = private_key.sign(
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        encoded_signature = base64.b64encode(signature)
+        decoded_signature = encoded_signature.decode()
+        return decoded_signature
 
-def signRoot(root,key):
-    private_key = serialization.load_pem_private_key(to_binary(key), password=None, backend=default_backend())
-    message = bytes(root, 'utf-8')
-    signature = private_key.sign(
-        message,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
-    encoded_signature=base64.b64encode(signature)
-    decoded_signature=encoded_signature.decode()
-    return decoded_signature
 
-def verifyRoot(message,decoded_signature):
+def verifyRoot(message, decoded_signature):
     with open("sk.pem", "rb") as key_file:
         private_key = serialization.load_pem_private_key(key_file.read(), password=None)
         encoded_signature = decoded_signature.encode(encoding='utf-8')
@@ -121,6 +137,10 @@ def calcRoot(nodesArrayLocal):
                 parent = MerkelTreeNode(combinedHash)
                 parent.leftLeaf = node
                 parent.rightLeaf = node2
+                node.parent = parent
+                node.brother = node2
+                node2.parent = parent
+                node2.brother = node
                 finalTree.append(parent)
             nodesArrayLocal = []
             nodesArrayLocal = finalTree
@@ -132,33 +152,38 @@ if __name__ == '__main__':
     finalTree = []
     while True:
         usrInput = input()
-        usrInputParsed = usrInput.split(" ")
-        if usrInputParsed[0] == "1":
-            addNode(usrInputParsed[1])
-        elif usrInputParsed[0] == "2":
-            finalTree = calcRoot(nodesArray)
+        if usrInput == "":
+            continue
+        # usrInputParsed = usrInput.split(" ")
+        if usrInput[0] == "1":
+            addNode(usrInput[2:])
+        elif usrInput[0] == "2":
+            finalTree = calcRoot(nodesArray.copy())
             if finalTree is not None:
                 print(finalTree[0].hashedData)
             else:  # invalid input
                 print("\n")
                 continue
-        elif usrInputParsed[0] == "3":
-            proof = calcProofOfInclusion(usrInputParsed[1])
-        elif usrInputParsed[0] == "4":
+        elif usrInput[0] == "3":
+            finalTree = calcRoot(nodesArray)
+            if finalTree is not None:
+                print(finalTree[0].hashedData, end='')
+            else:  # invalid input
+                print("\n")
+                continue
+            calcProofOfInclusion(usrInput[2:])
+            print("\n")
+        elif usrInput[0] == "4":
             checkProofOfInclusion(finalTree)
-        elif usrInputParsed[0] == "5":
+        elif usrInput[0] == "5":
             calcKeys()
-        elif usrInputParsed[0] == "6":
+        elif usrInput[0] == "6":
             hashRoot = finalTree[0].hashedData
-            key_str = input()
-            key_bytes = bytes(key_str, 'utf-8')
-            sign = signRoot(hashRoot, key_bytes)
+            sign = signRoot(hashRoot)
             print(sign)
-        elif usrInputParsed[0] == "7":
+        elif usrInput[0] == "7":
             hashRoot = finalTree[0].hashedData
-            print(verifyRoot(hashRoot, usrInputParsed[1]))
-
+            print(verifyRoot(hashRoot, usrInput[1]))
         else:
             print("invalid input!")
             continue
-
