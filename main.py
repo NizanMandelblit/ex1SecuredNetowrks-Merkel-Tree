@@ -59,24 +59,20 @@ def calcProofOfInclusion(index):
 def checkProofOfInclusion(usrInput):
     usrInputSplitted = usrInput.split(" ")
     hashedData = hashlib.sha256(usrInputSplitted[0].encode('utf-8')).hexdigest()
-    root = ""
-    leavesHashedData = usrInputSplitted[1:]
-    for i in range(0, len(leavesHashedData), 2):
-        firstNode = leavesHashedData[i]
-        if i + 1 >= len(leavesHashedData):
-            root += hashlib.sha256(firstNode.encode('utf-8')).hexdigest()
-            break
-        secondNode = leavesHashedData[i + 1]
-        if firstNode[0] == "0":
-            root += (hashlib.sha256(firstNode.encode('utf-8')).hexdigest() + hashlib.sha256(
-                secondNode.encode('utf-8')).hexdigest())
+    root = usrInputSplitted[1]
+    leavesHashedData = usrInputSplitted[2:]
+    for leaf in leavesHashedData:
+        if leaf[0] == "0":
+            hashedData = (hashlib.sha256(leaf[1:].encode('utf-8')).hexdigest() + hashedData)
         else:
-            root += (hashlib.sha256(secondNode.encode('utf-8')).hexdigest() + hashlib.sha256(
-                firstNode.encode('utf-8')).hexdigest())
-    if root == hashedData:
+            hashedData = (hashedData + hashlib.sha256(leaf[1:].encode('utf-8')).hexdigest())
+        hashedData = hashlib.sha256(hashedData.encode('utf-8')).hexdigest()
+    if hashedData == root:
         print("True")
     else:
         print("False")
+    print("HASHEDDATA IS: " + hashedData)
+    print("ROOT IS: " + root)
 
 
 def calcKeys():
