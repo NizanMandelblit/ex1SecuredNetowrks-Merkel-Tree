@@ -183,13 +183,13 @@ if __name__ == '__main__':
             sign = signRoot(hashRoot, private_key)
             print(sign)
         elif usrInput[0] == "7":
-            hashRoot = finalTree[0].hashedData
             userInput = usrInput[2:]
             conKey = []
             conKey.append(userInput)
             bytesKey = getInput(conKey)
             public_key = serialization.load_pem_public_key(bytesKey)
             signInput = input()
+            hashRoot = input()
             res = verifyRoot(hashRoot, public_key, signInput)
             print(res)
         else:
