@@ -1,3 +1,4 @@
+# Eldad Horvitz, 314964438, Nizan Mandelblit, 313
 import hashlib
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -23,6 +24,18 @@ def addNode(data):
     newNode.numLeaf = len(nodesArray)
     nodesArray.append(newNode)
     return
+
+
+def getInput(conKey):
+    while True:
+        userInput = input()
+        if userInput:
+            conKey.append(userInput)
+        else:
+            break
+    finalKey = '\n'.join(conKey)
+    bytesKey = bytes(finalKey, 'utf-8')
+    return bytesKey
 
 
 def strProofRecrusive(requestedNode):
@@ -61,64 +74,47 @@ def calcKeys():
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=alg
     )
-    with open("sk.pem", "wb") as f:
-        f.write(pem)
-        f.close()
-    f = open("sk.pem", "rb")
-    bSK = f.read()
-    sSK = bSK.decode()
-    print(sSK)
-    f.close()
+    sk = pem.decode()
+    print(sk)
     public_key = private_key.public_key()
     pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    with open("pk.pem", "wb") as f:
-        f.write(pem)
-        f.close()
-    f = open("pk.pem", "rb")
-    bPK = f.read()
-    sPK = bPK.decode()
-    print(sPK)
-    f.close()
+    pk = pem.decode()
+    print(pk)
 
 
-def signRoot(root):
-    with open("sk.pem", "rb") as key_file:
-        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
-        message = bytes(root, 'utf-8')
-        signature = private_key.sign(
-            message,
-            padding.PSS(
+def signRoot(root, key):
+    message = bytes(root, 'utf-8')
+    signature = key.sign(
+        message,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    encoded_signature = base64.b64encode(signature)
+    decoded_signature = encoded_signature.decode()
+    return decoded_signature
+
+
+def verifyRoot(message, key, decoded_signature):
+    encoded_signature = decoded_signature.encode(encoding='utf-8')
+    signature = base64.b64decode(encoded_signature)
+    message = bytes(message, 'utf-8')
+    try:
+        key.verify(
+            signature, message, padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
                 salt_length=padding.PSS.MAX_LENGTH
             ),
             hashes.SHA256()
         )
-        encoded_signature = base64.b64encode(signature)
-        decoded_signature = encoded_signature.decode()
-        return decoded_signature
-
-
-def verifyRoot(message, decoded_signature):
-    with open("sk.pem", "rb") as key_file:
-        private_key = serialization.load_pem_private_key(key_file.read(), password=None)
-        encoded_signature = decoded_signature.encode(encoding='utf-8')
-        signature = base64.b64decode(encoded_signature)
-        message = bytes(message, 'utf-8')
-        public_key = private_key.public_key()
-        try:
-            public_key.verify(
-                signature, message, padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
-                hashes.SHA256()
-            )
-        except:
-            return False
-        return True
+    except:
+        return False
+    return True
 
 
 def calcRoot(nodesArrayLocal):
@@ -182,11 +178,37 @@ if __name__ == '__main__':
             calcKeys()
         elif usrInput[0] == "6":
             hashRoot = finalTree[0].hashedData
-            sign = signRoot(hashRoot)
+            userInput = usrInput[2:]
+            conKey = []
+            conKey.append(userInput)
+            bytesKey = getInput(conKey)
+            private_key = serialization.load_pem_private_key(bytesKey, password=None)
+            sign = signRoot(hashRoot, private_key)
             print(sign)
         elif usrInput[0] == "7":
-            hashRoot = finalTree[0].hashedData
-            print(verifyRoot(hashRoot, usrInput[1]))
+            userInput = usrInput[2:]
+            conKey = []
+            conKey.append(userInput)
+            bytesKey = getInput(conKey)
+            public_key = serialization.load_pem_public_key(bytesKey)
+            signInput = input()
+            hashRoot = input()
+            res = verifyRoot(hashRoot, public_key, signInput)
+            print(res)
         else:
+            data = "1"
+            one = hashlib.sha256(data.encode('utf-8')).hexdigest()
+            print(one)
+            data = "0"
+            zero = hashlib.sha256(data.encode('utf-8')).hexdigest()
+            print(zero)
+            oo = one + one
+            print(hashlib.sha256(oo.encode('utf-8')).hexdigest())
+            oz = one + zero
+            print(hashlib.sha256(oz.encode('utf-8')).hexdigest())
+            zo = zero + one
+            print(hashlib.sha256(zo.encode('utf-8')).hexdigest())
+            zz = zero + zero
+            print(hashlib.sha256(zz.encode('utf-8')).hexdigest())
             print("invalid input!")
             continue
