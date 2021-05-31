@@ -63,6 +63,9 @@ def checkProofOfInclusion(usrInput):
     leavesHashedData = usrInputSplitted[1:]
     for i in range(0, len(leavesHashedData), 2):
         firstNode = leavesHashedData[i]
+        if i + 1 >= len(leavesHashedData):
+            root += hashlib.sha256(firstNode.encode('utf-8')).hexdigest()
+            break
         secondNode = leavesHashedData[i + 1]
         if firstNode[0] == "0":
             root += (hashlib.sha256(firstNode.encode('utf-8')).hexdigest() + hashlib.sha256(
