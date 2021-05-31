@@ -56,10 +56,24 @@ def calcProofOfInclusion(index):
     strProofRecrusive(requestedNode)
 
 
-def checkProofOfInclusion(data):
-    nodesArray.append(MerkelTreeNode(data))
-    proof = []
-    return proof
+def checkProofOfInclusion(usrInput):
+    usrInputSplitted = usrInput.split(" ")
+    hashedData = hashlib.sha256(usrInputSplitted[0].encode('utf-8')).hexdigest()
+    root = ""
+    leavesHashedData = usrInputSplitted[1:]
+    for i in range(0, len(leavesHashedData), 2):
+        firstNode = leavesHashedData[i]
+        secondNode = leavesHashedData[i + 1]
+        if firstNode[0] == "0":
+            root += (hashlib.sha256(firstNode.encode('utf-8')).hexdigest() + hashlib.sha256(
+                secondNode.encode('utf-8')).hexdigest())
+        else:
+            root += (hashlib.sha256(secondNode.encode('utf-8')).hexdigest() + hashlib.sha256(
+                firstNode.encode('utf-8')).hexdigest())
+    if root == hashedData:
+        print("True")
+    else:
+        print("False")
 
 
 def calcKeys():
@@ -173,7 +187,7 @@ if __name__ == '__main__':
             calcProofOfInclusion(usrInput[2:])
             print("\n")
         elif usrInput[0] == "4":
-            checkProofOfInclusion(finalTree)
+            checkProofOfInclusion(usrInput[2:])
         elif usrInput[0] == "5":
             calcKeys()
         elif usrInput[0] == "6":
