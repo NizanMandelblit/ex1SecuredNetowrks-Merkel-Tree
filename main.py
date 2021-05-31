@@ -29,7 +29,10 @@ def strProofRecrusive(requestedNode):
     if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
         return
     if requestedNode.brother is not None:
-        print(" " + requestedNode.brother.hashedData, end='')
+        if requestedNode.parent.leftLeaf == requestedNode.brother:
+            print(" 0" + requestedNode.brother.hashedData, end='')
+        else:
+            print(" 1" + requestedNode.brother.hashedData, end='')
     if requestedNode.parent.hashedData != finalTree[0].hashedData:  # if his parent is not the root
         strProofRecrusive(requestedNode.parent)
 
