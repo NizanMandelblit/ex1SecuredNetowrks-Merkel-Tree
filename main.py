@@ -71,8 +71,6 @@ def checkProofOfInclusion(usrInput):
         print("True")
     else:
         print("False")
-    print("HASHEDDATA IS: " + hashedData)
-    print("ROOT IS: " + root)
 
 
 def calcKeys():
