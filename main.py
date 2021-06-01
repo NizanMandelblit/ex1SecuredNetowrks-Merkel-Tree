@@ -63,9 +63,9 @@ def checkProofOfInclusion(usrInput):
     leavesHashedData = usrInputSplitted[2:]
     for leaf in leavesHashedData:
         if leaf[0] == "0":
-            hashedData = (hashlib.sha256(leaf[1:].encode('utf-8')).hexdigest() + hashedData)
+            hashedData = (leaf[1:] + hashedData)
         else:
-            hashedData = (hashedData + hashlib.sha256(leaf[1:].encode('utf-8')).hexdigest())
+            hashedData = (hashedData + leaf[1:])
         hashedData = hashlib.sha256(hashedData.encode('utf-8')).hexdigest()
     if hashedData == root:
         print("True")
