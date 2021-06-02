@@ -157,9 +157,18 @@ def calcRoot(nodesArrayLocal):
         return finalTree
 
 
+def defaultLevelHash(level):
+    levelHash = hashlib.sha256(b'00').hexdigest()
+    for i in range(int(level)):
+        con = levelHash + levelHash
+        levelHash = hashlib.sha256(con.encode('utf-8')).hexdigest()
+    return levelHash
+
+
 if __name__ == '__main__':
     nodesArray = []
     finalTree = []
+    #smt = b'0000000000000000000000000000000000000000000000000000000000000000'
     while True:
         usrInput = input()
         if usrInput == "":
@@ -202,10 +211,17 @@ if __name__ == '__main__':
             conKey.append(userInput)
             bytesKey = getInput(conKey)
             public_key = serialization.load_pem_public_key(bytesKey)
-            signInput = input()
-            hashRoot = input()
+            nextInput = input()
+            splitted = nextInput.split(' ')
+            signInput = splitted[0]
+            hashRoot = splitted[1]
             res = verifyRoot(hashRoot, public_key, signInput)
             print(res)
+        elif usrInput[0] == "8":
+            p = input()
+            defaultLevelHash(p)
+        elif usrInput[0] == "9":
+            p = 9
         else:
             data = "1"
             one = hashlib.sha256(data.encode('utf-8')).hexdigest()
@@ -222,4 +238,5 @@ if __name__ == '__main__':
             zz = zero + zero
             print(hashlib.sha256(zz.encode('utf-8')).hexdigest())
             print("invalid input!")
+
             continue
