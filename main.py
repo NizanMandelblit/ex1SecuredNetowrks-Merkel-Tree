@@ -170,7 +170,11 @@ def getBrother(binData):
     if binData & 1:
         binData = binData >> 1
         binData = binData << 1
-        return binData
+        return binData, 0
+    else:
+        binData = binData | 1
+        return binData, 1
+
 
 
 def nondDfaultLevelHash(my_hexdata):
@@ -178,14 +182,32 @@ def nondDfaultLevelHash(my_hexdata):
     num_of_bits = 256
     binData = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
     nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
+    father = binData[:1]
     for i in range(255):
-        brother = getBrother(binData)
-        if binData in nonDefaultDict.keys():
-            continue
+        brother, brotherLSB = getBrother(binData)
+        if brother in nonDefaultDict.keys():
+            if brotherLSB:
+                con = nonDefaultDict[binData] + nonDefaultDict[brother]
+            else:
+                con = nonDefaultDict[brother] + nonDefaultDict[binData]
+            nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
         else:
-            continue
-        binData = binData[:1]
+            if brotherLSB:
+                con = nonDefaultDict[binData] + defaultDict[i]
+            else:
+                con = defaultDict[i] + nonDefaultDict[binData]
+            nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
+        binData = father
+        father = binData[:1]
     x = 2
+
+
+def printRoot():
+    rootBinData=''
+    if rootBinData in nonDefaultDict.keys():
+        print(nonDefaultDict[rootBinData])
+    else:
+        print(defaultDict[255])
 
 
 if __name__ == '__main__':
@@ -193,8 +215,8 @@ if __name__ == '__main__':
     finalTree = []
     sparseMerkelTreeArray = []
     defaultDict = {}
+    defaultLevelHash()
     nonDefaultDict = {}
-    # smt = b'0000000000000000000000000000000000000000000000000000000000000000'
     while True:
         usrInput = input()
         if usrInput == "":
@@ -243,10 +265,9 @@ if __name__ == '__main__':
             res = verifyRoot(hashRoot, public_key, signInput)
             print(res)
         elif usrInput[0] == "8":
-            defaultLevelHash()
             nondDfaultLevelHash(usrInput[2:])
         elif usrInput[0] == "9":
-            p = 9
+            printRoot()
         else:
             print("\n")
             continue
