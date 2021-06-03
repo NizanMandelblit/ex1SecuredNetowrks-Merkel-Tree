@@ -158,12 +158,14 @@ def calcRoot(nodesArrayLocal):
 
 
 def defaultLevelHash():
+    defaultDict[0] = b'0'
     levelHash = hashlib.sha256(b'00').hexdigest()
     for i in range(255):
-        defaultDict[i] = levelHash
+        defaultDict[i+1] = levelHash
         con = levelHash + levelHash
         levelHash = hashlib.sha256(con.encode('utf-8')).hexdigest()
-    defaultDict[255] = levelHash
+    defaultDict[256] = levelHash
+
 
 
 def getBrother(binData):
@@ -181,7 +183,12 @@ def nondDfaultLevelHash(my_hexdata):
     scale = 16  # equals to hexadecimal
     num_of_bits = 256
     binData = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
-    nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
+    length = len(binData)
+    if binData[length-1] == '0':
+        nonDefaultDict[binData] = hashlib.sha256(b'10').hexdigest()
+    else:
+        nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
+    binData = binData[:length - 1]
     length = len(binData)
     father = binData[:length-1]
     for i in range(256):
@@ -203,8 +210,8 @@ def nondDfaultLevelHash(my_hexdata):
         if length > 0:
             father = binData[:length-1]
     print(nonDefaultDict[father])
-    print(nonDefaultDict['0'])
-    x=3
+    print(nonDefaultDict[father])
+
 
 def printRoot():
     rootBinData=''
