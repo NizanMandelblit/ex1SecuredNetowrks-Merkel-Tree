@@ -182,7 +182,6 @@ if __name__ == '__main__':
                 print(finalTree[0].hashedData)
             else:  # invalid input
                 print("\n")
-                continue
         elif usrInput[0] == "3":
             finalTree = calcRoot(nodesArray)
             if finalTree is not None:
@@ -223,20 +222,5 @@ if __name__ == '__main__':
         elif usrInput[0] == "9":
             p = 9
         else:
-            data = "1"
-            one = hashlib.sha256(data.encode('utf-8')).hexdigest()
-            print(one)
-            data = "0"
-            zero = hashlib.sha256(data.encode('utf-8')).hexdigest()
-            print(zero)
-            oo = one + one
-            print(hashlib.sha256(oo.encode('utf-8')).hexdigest())
-            oz = one + zero
-            print(hashlib.sha256(oz.encode('utf-8')).hexdigest())
-            zo = zero + one
-            print(hashlib.sha256(zo.encode('utf-8')).hexdigest())
-            zz = zero + zero
-            print(hashlib.sha256(zz.encode('utf-8')).hexdigest())
-            print("invalid input!")
-
+            print("\n")
             continue
