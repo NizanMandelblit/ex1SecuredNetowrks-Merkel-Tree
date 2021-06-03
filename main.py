@@ -167,12 +167,12 @@ def defaultLevelHash():
 
 
 def getBrother(binData):
-    if binData & 1:
-        binData = binData >> 1
-        binData = binData << 1
+    length = len(binData)
+    if binData[length-1] == '1':
+        binData = binData[:length-1] + '0'
         return binData, 0
     else:
-        binData = binData | 1
+        binData = binData[:length-1] + '1'
         return binData, 1
 
 
@@ -182,8 +182,9 @@ def nondDfaultLevelHash(my_hexdata):
     num_of_bits = 256
     binData = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
     nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
-    father = binData[:1]
-    for i in range(255):
+    length = len(binData)
+    father = binData[:length-1]
+    for i in range(256):
         brother, brotherLSB = getBrother(binData)
         if brother in nonDefaultDict.keys():
             if brotherLSB:
@@ -198,9 +199,12 @@ def nondDfaultLevelHash(my_hexdata):
                 con = defaultDict[i] + nonDefaultDict[binData]
             nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
         binData = father
-        father = binData[:1]
-    x = 2
-
+        length = len(binData)
+        if length > 0:
+            father = binData[:length-1]
+    print(nonDefaultDict[father])
+    print(nonDefaultDict['0'])
+    x=3
 
 def printRoot():
     rootBinData=''
