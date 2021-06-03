@@ -157,18 +157,44 @@ def calcRoot(nodesArrayLocal):
         return finalTree
 
 
-def defaultLevelHash(level):
+def defaultLevelHash():
     levelHash = hashlib.sha256(b'00').hexdigest()
-    for i in range(int(level)):
+    for i in range(255):
+        defaultDict[i] = levelHash
         con = levelHash + levelHash
         levelHash = hashlib.sha256(con.encode('utf-8')).hexdigest()
-    return levelHash
+    defaultDict[255] = levelHash
+
+
+def getBrother(binData):
+    if binData & 1:
+        binData = binData >> 1
+        binData = binData << 1
+        return binData
+
+
+def nondDfaultLevelHash(my_hexdata):
+    scale = 16  # equals to hexadecimal
+    num_of_bits = 256
+    binData = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
+    nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
+    for i in range(255):
+        brother = getBrother(binData)
+        if binData in nonDefaultDict.keys():
+            continue
+        else:
+            continue
+        binData = binData[:1]
+    x = 2
 
 
 if __name__ == '__main__':
     nodesArray = []
     finalTree = []
-    #smt = b'0000000000000000000000000000000000000000000000000000000000000000'
+    sparseMerkelTreeArray = []
+    defaultDict = {}
+    nonDefaultDict = {}
+    # smt = b'0000000000000000000000000000000000000000000000000000000000000000'
     while True:
         usrInput = input()
         if usrInput == "":
@@ -218,8 +244,8 @@ if __name__ == '__main__':
             res = verifyRoot(hashRoot, public_key, signInput)
             print(res)
         elif usrInput[0] == "8":
-            p = input()
-            defaultLevelHash(p)
+            defaultLevelHash()
+            nondDfaultLevelHash(usrInput[2:])
         elif usrInput[0] == "9":
             p = 9
         else:
