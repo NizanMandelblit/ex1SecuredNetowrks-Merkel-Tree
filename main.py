@@ -38,6 +38,11 @@ def getInput(conKey):
     return bytesKey
 
 
+def hexToBin(my_hexdata):
+    scale = 16  # equals to hexadecimal
+    num_of_bits = 256
+    return bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
+
 def strProofRecrusive(requestedNode):
     if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
         return
@@ -158,13 +163,14 @@ def calcRoot(nodesArrayLocal):
 
 
 def defaultLevelHash():
-    defaultDict[0] = b'0'
+    defaultDict[0] = '0'
     levelHash = hashlib.sha256(b'00').hexdigest()
     for i in range(255):
         defaultDict[i+1] = levelHash
         con = levelHash + levelHash
         levelHash = hashlib.sha256(con.encode('utf-8')).hexdigest()
     defaultDict[256] = levelHash
+    V=7
 
 
 
@@ -179,47 +185,79 @@ def getBrother(binData):
 
 
 
-def nondDfaultLevelHash(my_hexdata):
-    scale = 16  # equals to hexadecimal
-    num_of_bits = 256
-    binData = bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
+def nondDfaultLevelHash(digest):
+    binData = hexToBin(digest)
     length = len(binData)
-    if binData[length-1] == '0':
-        nonDefaultDict[binData] = hashlib.sha256(b'10').hexdigest()
+    father = binData[:length - 1]
+    nonDefaultDict[binData] = '1'
+    brother, brotherLSB = getBrother(binData)
+    if brother in nonDefaultDict.keys():
+        nonDefaultDict[father] = hashlib.sha256(b'11').hexdigest()
     else:
-        nonDefaultDict[binData] = hashlib.sha256(b'01').hexdigest()
-    binData = binData[:length - 1]
-    length = len(binData)
-    father = binData[:length-1]
-    for i in range(256):
+        if binData[length-1] == '0':
+            nonDefaultDict[father] = hashlib.sha256(b'10').hexdigest()
+        else:
+            nonDefaultDict[father] = hashlib.sha256(b'01').hexdigest()
+    for i in range(255):
+        binData = father
+        length = len(binData)
+        father = binData[:length - 1]
         brother, brotherLSB = getBrother(binData)
         if brother in nonDefaultDict.keys():
-            if brotherLSB:
+            if brotherLSB == 1:
                 con = nonDefaultDict[binData] + nonDefaultDict[brother]
             else:
                 con = nonDefaultDict[brother] + nonDefaultDict[binData]
             nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
         else:
-            if brotherLSB:
-                con = nonDefaultDict[binData] + defaultDict[i]
+            if brotherLSB == 1:
+                con = nonDefaultDict[binData] + defaultDict[i+1]
             else:
-                con = defaultDict[i] + nonDefaultDict[binData]
+                con = defaultDict[i+1] + nonDefaultDict[binData]
             nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
-        binData = father
-        length = len(binData)
-        if length > 0:
-            father = binData[:length-1]
-    print(nonDefaultDict[father])
-    print(nonDefaultDict[father])
 
 
-def printRoot():
+def getRoot():
     rootBinData=''
     if rootBinData in nonDefaultDict.keys():
-        print(nonDefaultDict[rootBinData])
+        return nonDefaultDict[rootBinData]
     else:
-        print(defaultDict[255])
+        return defaultDict[256]
 
+
+def calcSparseProofOfInclusion(digest):
+    output=""
+    default = 0
+    binData = hexToBin(digest)
+    length = len(binData)
+    father = binData[:length - 1]
+    brother, brotherLSB = getBrother(binData)
+    if brother in nonDefaultDict.keys():
+        output = output + " " + nonDefaultDict[brother]
+        default = 1
+    elif binData in nonDefaultDict.keys():
+        output = output + " " + defaultDict[0]
+        default = 1
+    for i in range(255):
+        binData = father
+        length = len(binData)
+        father = binData[:length - 1]
+        brother, brotherLSB = getBrother(binData)
+        if default == 1:
+            if brother in nonDefaultDict.keys():
+                output = output + " " + nonDefaultDict[brother]
+            else:
+                output = output + " " + defaultDict[i + 1]
+        elif brother in nonDefaultDict.keys():
+            default = 1
+            output = output + " " + defaultDict[i + 1]
+            output = output + " " + nonDefaultDict[brother]
+    if default == 0:
+        output = output + " " + defaultDict[256]
+    return output
+
+def checkSparseProofOfInclusion(us):
+    print(True)
 
 if __name__ == '__main__':
     nodesArray = []
@@ -233,7 +271,7 @@ if __name__ == '__main__':
         if usrInput == "":
             continue
         # usrInputParsed = usrInput.split(" ")
-        if usrInput[0] == "1":
+        if usrInput[0] == "1" and usrInput[1] == " ":
             addNode(usrInput[2:])
         elif usrInput[0] == "2":
             finalTree = calcRoot(nodesArray.copy())
@@ -278,7 +316,11 @@ if __name__ == '__main__':
         elif usrInput[0] == "8":
             nondDfaultLevelHash(usrInput[2:])
         elif usrInput[0] == "9":
-            printRoot()
+            print(getRoot())
+        elif usrInput[0] == "1" and usrInput[1] == "0":
+            print(getRoot()+calcSparseProofOfInclusion(usrInput[3:]))
+        elif usrInput[0] == "1" and usrInput[1] == "1":
+            checkSparseProofOfInclusion(usrInput[3:])
         else:
             print("\n")
             continue
