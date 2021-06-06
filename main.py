@@ -1,4 +1,4 @@
-# Eldad Horvitz, 314964438, Nizan Mandelblit, 313
+# Eldad Horvitz, 314964438, Nizan Mandelblit, 313485468
 import hashlib
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 import base64
 
-
+# class for the regular tree
 class MerkelTreeNode:
     def __init__(self, data):
         self.leftLeaf = None
@@ -18,14 +18,14 @@ class MerkelTreeNode:
         self.brother = None
         self.hashedData = hashlib.sha256(data.encode('utf-8')).hexdigest()
 
-
+# add a node to tree
 def addNode(data):
     newNode = MerkelTreeNode(data)
     newNode.numLeaf = len(nodesArray)
     nodesArray.append(newNode)
     return
 
-
+# for input that has more than 1 line
 def getInput(conKey):
     while True:
         userInput = input()
@@ -38,11 +38,14 @@ def getInput(conKey):
     return bytesKey
 
 
+#convert hex to binary
 def hexToBin(my_hexdata):
     scale = 16  # equals to hexadecimal
     num_of_bits = 256
     return bin(int(my_hexdata, scale))[2:].zfill(num_of_bits)
 
+
+#creat proof
 def strProofRecrusive(requestedNode):
     if requestedNode.hashedData is finalTree[0].hashedData:  # if the requested node is the root
         return
@@ -59,8 +62,10 @@ def strProofRecrusive(requestedNode):
 def calcProofOfInclusion(index):
     requestedNode = nodesArray[int(index)]
     strProofRecrusive(requestedNode)
+    print("")
 
 
+#checks the proof
 def checkProofOfInclusion(usrInput):
     usrInputSplitted = usrInput.split(" ")
     hashedData = hashlib.sha256(usrInputSplitted[0].encode('utf-8')).hexdigest()
@@ -78,6 +83,7 @@ def checkProofOfInclusion(usrInput):
         print("False")
 
 
+#function makes random keys
 def calcKeys():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
@@ -101,6 +107,7 @@ def calcKeys():
     print(pk)
 
 
+#function makes a signature for the root
 def signRoot(root, key):
     message = bytes(root, 'utf-8')
     signature = key.sign(
@@ -116,6 +123,7 @@ def signRoot(root, key):
     return decoded_signature
 
 
+#the function verifies the root
 def verifyRoot(message, key, decoded_signature):
     encoded_signature = decoded_signature.encode(encoding='utf-8')
     signature = base64.b64decode(encoded_signature)
@@ -133,6 +141,7 @@ def verifyRoot(message, key, decoded_signature):
     return True
 
 
+#calculates the root
 def calcRoot(nodesArrayLocal):
     nodesArrayLen = len(nodesArrayLocal)
     if nodesArrayLen == 0:
@@ -162,6 +171,7 @@ def calcRoot(nodesArrayLocal):
         return finalTree
 
 
+#finds the hash of each level in the default sparse tree
 def defaultLevelHash():
     defaultDict[0] = '0'
     levelHash = hashlib.sha256(b'00').hexdigest()
@@ -174,6 +184,7 @@ def defaultLevelHash():
 
 
 
+#gets the brother's digest and its lsb
 def getBrother(binData):
     length = len(binData)
     if binData[length-1] == '1':
@@ -184,7 +195,7 @@ def getBrother(binData):
         return binData, 1
 
 
-
+# inserts not default value to the dictionary for those that need to be changed
 def nondDfaultLevelHash(digest):
     binData = hexToBin(digest)
     length = len(binData)
@@ -217,6 +228,7 @@ def nondDfaultLevelHash(digest):
             nonDefaultDict[father] = hashlib.sha256(con.encode('utf-8')).hexdigest()
 
 
+# gets the root of the sparse tree
 def getRoot():
     rootBinData=''
     if rootBinData in nonDefaultDict.keys():
@@ -224,7 +236,7 @@ def getRoot():
     else:
         return defaultDict[256]
 
-
+# makes Proof Of Inclusion
 def calcSparseProofOfInclusion(digest):
     output=""
     default = 0
@@ -256,8 +268,61 @@ def calcSparseProofOfInclusion(digest):
         output = output + " " + defaultDict[256]
     return output
 
+
+# checks Proof Of Inclusion
 def checkSparseProofOfInclusion(us):
-    print(True)
+    usrInputSplitted = us.split(" ")
+    digest = usrInputSplitted[0]
+    binData = hexToBin(digest)
+    length = len(binData)
+    val = usrInputSplitted[1]
+    root = usrInputSplitted[2]
+    proof = usrInputSplitted[3:]
+    proofSize = len(proof)
+    brother, brotherLSB = getBrother(binData)
+    lastDefaultLevel = -1
+    lastDefaultValue = hashlib.sha256(b'00').hexdigest()
+    if val == '1' and proof[0] == '1':
+        lastDefaultValue = hashlib.sha256(b'11').hexdigest()
+        lastDefaultLevel = 0
+    elif val == '0' and proof[0] == '1':
+        lastDefaultLevel = 0
+        if brotherLSB == 1:
+            lastDefaultValue = hashlib.sha256(b'01').hexdigest()
+        else:
+            lastDefaultValue = hashlib.sha256(b'10').hexdigest()
+    elif val == '1' and proof[0] != '1':
+        lastDefaultLevel = 0
+        if brotherLSB == 0:
+            lastDefaultValue = hashlib.sha256(b'01').hexdigest()
+        else:
+            lastDefaultValue = hashlib.sha256(b'10').hexdigest()
+    if lastDefaultLevel == 0:
+        if proofSize != 256:
+            return False
+        lastDefaultLevel = 1
+    if lastDefaultLevel == -1:
+        for j in range(256):
+            if defaultDict[j + 1] == proof[0]:
+                lastDefaultLevel = j+1
+                lastDefaultValue = proof[0]
+                break
+        if lastDefaultLevel + proofSize != 257:
+            return False
+    if lastDefaultLevel == -1:
+        return False
+    prev = lastDefaultValue
+    for k in range(proofSize - 1):
+        lsb = binData[length - (k + 1 + lastDefaultLevel)]
+        if lsb == "0":
+            con = prev + proof[k + 1]
+        else:
+            con = proof[k + 1] + prev
+        prev = hashlib.sha256(con.encode('utf-8')).hexdigest()
+    if prev == root:
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     nodesArray = []
@@ -269,7 +334,7 @@ if __name__ == '__main__':
     while True:
         usrInput = input()
         if usrInput == "":
-            continue
+            print("\n")
         # usrInputParsed = usrInput.split(" ")
         if usrInput[0] == "1" and usrInput[1] == " ":
             addNode(usrInput[2:])
@@ -278,16 +343,15 @@ if __name__ == '__main__':
             if finalTree is not None:
                 print(finalTree[0].hashedData)
             else:  # invalid input
-                print("\n")
+                print("")
+                continue
         elif usrInput[0] == "3":
             finalTree = calcRoot(nodesArray)
             if finalTree is not None:
                 print(finalTree[0].hashedData, end='')
             else:  # invalid input
-                print("\n")
-                continue
+                print("")
             calcProofOfInclusion(usrInput[2:])
-            print("\n")
         elif usrInput[0] == "4":
             checkProofOfInclusion(usrInput[2:])
         elif usrInput[0] == "5":
@@ -320,7 +384,7 @@ if __name__ == '__main__':
         elif usrInput[0] == "1" and usrInput[1] == "0":
             print(getRoot()+calcSparseProofOfInclusion(usrInput[3:]))
         elif usrInput[0] == "1" and usrInput[1] == "1":
-            checkSparseProofOfInclusion(usrInput[3:])
+            print(checkSparseProofOfInclusion(usrInput[3:]))
         else:
-            print("\n")
-            continue
+            print("")
+
